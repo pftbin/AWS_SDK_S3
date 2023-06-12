@@ -1,1 +1,12 @@
 https://github.com/aws/aws-sdk-cpp
+
+直接git或下载zip会有文件未下载，需要使用 git cmd执行（下载其中crt文件夹中的文件）
+git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp.git
+
+//下面是构建命令，一般直接使用cmake_gui构建即可
+cd aws-sdk-cpp
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="ecr"
+make
+make install
