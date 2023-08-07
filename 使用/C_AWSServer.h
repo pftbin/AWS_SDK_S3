@@ -13,9 +13,11 @@
 #include "aws/s3/model/UploadPartRequest.h"
 #include "aws/s3/model/AbortMultipartUploadRequest.h"
 //±éÀúÄ¿Â¼
-#include <aws/s3/model/ListObjectsRequest.h>
-#include <aws/s3/model/ListObjectsResult.h>
-#include <aws/s3/model/Object.h>
+#include "aws/s3/model/ListObjectsRequest.h"
+#include "aws/s3/model/ListObjectsResult.h"
+#include "aws/s3/model/ListObjectsV2Request.h"
+#include "aws/s3/model/ListObjectsV2Result.h"
+#include "aws/s3/model/Object.h"
 
 #include <string>
 #include <iostream>

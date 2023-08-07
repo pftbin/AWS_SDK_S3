@@ -309,6 +309,16 @@ BOOL C_AWSServer::DownloadFolder(CString& strObjectFolder, CString& strLocalFold
 	std::vector<std::string> vecobject_path;
 	if (list_s3_folder(object_folder, vecobject_path))
 	{
+		int FindFileCount =(int)vecobject_path.size();
+		strLogInfo.Format(_T("[DownloadFolder] OSS文件夹共找到[%d]个文件..."), FindFileCount);
+		WRITE_LOG(LogerDVInterface, 0, FALSE, _T("%s"), strLogInfo);
+		if (FindFileCount <= 0)
+		{
+			strLogInfo.Format(_T("[DownloadFolder]: 枚举OSS文件夹中文件失败..."));
+			WRITE_LOG(LogerDVInterface, 0, FALSE, _T("%s"), strLogInfo);
+			return FALSE;
+		}
+
 		for (size_t i = 0; i < vecobject_path.size(); i++)
 		{
 			//std::string localfile_path = local_folder + ossfilepath;
@@ -320,13 +330,19 @@ BOOL C_AWSServer::DownloadFolder(CString& strObjectFolder, CString& strLocalFold
 			std::string ossfilepath = vecobject_path[i];
 			std::string localfile_path = str_replace(ossfilepath, root_ossfolder, local_folder);
 
+			CString strFileOSSPath; strFileOSSPath = ossfilepath.c_str();
+			CString strRootOSSPath; strRootOSSPath = root_ossfolder.c_str();
+			CString strLocalRootPath; strLocalRootPath = local_folder.c_str();
+			strLogInfo.Format(_T("[DownloadFolder]: OSSFileCount = %d, FileOSSPath = [%s], RootOSSPath = [%s], LocalFolder = [%s]"), (int)vecobject_path.size(), strFileOSSPath.GetBuffer(), strRootOSSPath.GetBuffer(), strLocalRootPath.GetBuffer());
+			WRITE_LOG(LogerDVInterface, 0, FALSE, _T("%s"), strLogInfo);
+
 			std::string localfile_folder = get_path_folder(localfile_path);
 			CString strNowLocalFolder; strNowLocalFolder = localfile_folder.c_str();
 			strNowLocalFolder.Replace(_T("/"), _T("\\"));//SHCreateDirectoryEx不支持左斜杠
 			SHCreateDirectoryEx(NULL, strNowLocalFolder, NULL);
 			if (!::PathFileExists(strNowLocalFolder))
 			{
-				strLogInfo.Format(_T("[DownloadFolder]: CreateFolder Failed, folder:%s"), strNowLocalFolder.GetBuffer());
+				strLogInfo.Format(_T("[DownloadFolder]: CreateFolder Failed...[%s]"), strNowLocalFolder.GetBuffer());
 				WRITE_LOG(LogerDVInterface, 0, FALSE, _T("%s"), strLogInfo);
 				return FALSE;
 			}
@@ -820,7 +836,7 @@ bool C_AWSServer::list_s3_folder(const std::string object_folder, std::vector<st
 	CString strEndpoint, strAK, strSK, strBucket, strRegion;
 	strEndpoint = s_EndPoint.c_str(); strAK = s_AK.c_str(); strSK = s_SK.c_str();
 	strBucket = s_bucket.c_str(); strRegion = s_region.c_str();
-	strLogInfo.Format(_T("[get_s3_object]参数: EndPoint:%s, AK:%s, SK:%s, Bucket:%s, Region:%s "), strEndpoint, strAK, strSK, strBucket, strRegion);
+	strLogInfo.Format(_T("[list_s3_folder]参数: EndPoint:%s, AK:%s, SK:%s, Bucket:%s, Region:%s "), strEndpoint, strAK, strSK, strBucket, strRegion);
 	WRITE_LOG(LogerDVInterface, 0, FALSE, _T("%s"), strLogInfo);
 
 
@@ -843,6 +859,7 @@ bool C_AWSServer::list_s3_folder(const std::string object_folder, std::vector<st
 	//建立请求
 	Aws::S3::Model::ListObjectsRequest objectsRequest;
 	objectsRequest.SetBucket(aws_bucket);
+
 	std::string s_prefix = object_folder;
 	if (s_prefix.back() == '/')//是文件夹
 		s_prefix.erase(s_prefix.length() - 1, 1); // 删除末尾的左斜杠才能遍历
@@ -850,6 +867,8 @@ bool C_AWSServer::list_s3_folder(const std::string object_folder, std::vector<st
 	Aws::String aws_prefix(s_prefix.c_str(), s_prefix.size());
 	objectsRequest.SetPrefix(aws_prefix);
 	CString strPrefix; strPrefix = s_prefix.c_str();
+	strLogInfo.Format(_T("[list_s3_folder] Prefix = [%s] "), strPrefix);
+	WRITE_LOG(LogerDVInterface, 0, FALSE, _T("%s"), strLogInfo);
 
 	//下载Object
 	Aws::S3::Model::ListObjectsOutcome list_objects_outcome = s3_client.ListObjects(objectsRequest);
